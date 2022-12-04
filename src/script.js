@@ -16,35 +16,64 @@ const canvas = document.querySelector("canvas.webgl");
 
 // Scene
 const scene = new THREE.Scene();
+{
+  const color = "rgb(196, 235, 255)";
+  const near = 0;
+  const far = 10;
+  scene.fog = new THREE.Fog(color, near, far);
+  scene.background = new THREE.Color("rgb(196, 235, 255)");
+
+  pane
+    .addInput({ color: scene.fog.color.getStyle() }, "color", {
+      label: "fogColor",
+    })
+    .on("change", ({ value }) => {
+      scene.fog.color.set(value);
+    });
+
+  pane
+    .addInput({ color: scene.background.getStyle() }, "color", {
+      label: "backgroundColor",
+    })
+    .on("change", ({ value }) => {
+      scene.background.set(value);
+    });
+}
 
 /**
  * Water
  */
 // Geometry
-const waterGeometry = new THREE.PlaneGeometry(2, 2, 512, 512);
+const waterGeometry = new THREE.PlaneGeometry(20, 20, 512, 512);
 
-const crestColor = new THREE.Color("#8888ff");
-const troughColor = new THREE.Color("#0000ff");
+const crestColor = new THREE.Color("rgb(226, 245, 255)");
+const troughColor = new THREE.Color("rgb(10, 10, 166)");
 // Material
 const waterMaterial = new THREE.ShaderMaterial({
+  side: THREE.DoubleSide,
   vertexShader: waterVertexShaders,
   fragmentShader: waterFragmentShaders,
+  fog: true,
   uniforms: {
     uTime: { value: 0 },
 
-    uWaveElevation: { value: 0.2 },
-    uWaveFrequency: { value: new THREE.Vector2(4, 1.5) },
+    uWaveElevation: { value: 0.4 },
+    uWaveFrequency: { value: new THREE.Vector2(1, 1) },
     uWaveSpeed: { value: new THREE.Vector2(1.2, 1) },
 
     uCrestColor: { value: crestColor },
     uTroughColor: { value: troughColor },
-    uColorDifference: { value: 2 },
-    uColorOffset: { value: 0.25 },
+    uColorDifference: { value: 0.7 },
+    uColorOffset: { value: 0.4 },
 
     uSmallWavesElevation: { value: 0.15 },
     uSmallWavesFrequency: { value: 3 },
     uSmallWavesSpeed: { value: 0.2 },
     uSmallIterations: { value: 4 },
+
+    fogColor: { value: scene.fog.color },
+    fogNear: { value: scene.fog.near },
+    fogFar: { value: scene.fog.far },
   },
 });
 
@@ -139,6 +168,16 @@ pane.addInput(waterMaterial.uniforms.uSmallIterations, "value", {
   step: 1,
 });
 
+// Light
+
+{
+  const color = 0xffffff;
+  const intensity = 1;
+  const light = new THREE.DirectionalLight(color, intensity);
+  light.position.set(-1, 2, 4);
+  scene.add(light);
+}
+
 // Mesh
 const water = new THREE.Mesh(waterGeometry, waterMaterial);
 water.rotation.x = -Math.PI * 0.5;
@@ -176,7 +215,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   100
 );
-camera.position.set(1, 1, 1);
+camera.position.set(-2, 1, 0);
 scene.add(camera);
 
 // Controls
